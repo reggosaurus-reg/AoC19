@@ -1,6 +1,4 @@
-data = open("input/day4.txt")
-data = data.read()
-
+data = open("input/day4.txt").read()
 low = int(data[:6])
 high = int(data[7:13])
 
@@ -11,7 +9,7 @@ passwordsB = 0
 for candidate in range(low, high + 1):
     candidate = str(candidate)
     decreasing = A = B = False
-    doubles = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0}
+    doubles = [0 for i in range(10)]
 
     for i in range(5):
         left = candidate[i]

@@ -1,20 +1,9 @@
 data = open("input/day2.txt")
-data = data.read()
-
-temp = ""
-seqA = []
-# Parse input into list... 
-for char in data:
-    if char == ',' and temp:
-        seqA.append(int(temp))
-        temp = ""
-    elif char != '\n':
-        temp += char
-
+seqA = list(map(int, data.readline().split(',')))
+seqB = seqA.copy()
 
 print("A: ")
 
-seqB = seqA.copy()
 seqA[1] = 12
 seqA[2] = 2
 
