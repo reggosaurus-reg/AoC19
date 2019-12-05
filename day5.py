@@ -3,7 +3,7 @@ seqA = list(map(int, data.readline().split(',')))
 seqB = seqA.copy()
 
 get_opcode = lambda code: code % 100
-get_mode = lambda code, i: (code % (10**(i + 2))) // (10**(i + 1)) 
+get_mode = lambda code, i: code // (10 ** (i + 1)) % 10 
 
 print("A: ")
 
@@ -11,23 +11,20 @@ def get_param(seq, i, pos):
     """ Returns the value for the pos:th parameter. """
     mode = get_mode(seq[i], pos)
     if mode == 0:
-        return seq[seq[i + pos]]
+        return seq[seq[i + pos]]  # position mode 
     else:
-        return seq[i + pos]
+        return seq[i + pos]  # immediate mode
 
-def do_add(seq, i):
+def do_operation(seq, i, func):
+    """ Stores the result of the given func and returns program pointer. """
     op1 = get_param(seq, i, 1)
     op2 = get_param(seq, i, 2)
     res = seq[i + 3]
-    seq[res] = op1 + op2  
+    seq[res] = func(op1,  op2)  
     return i + 4
 
-def do_multiply(seq, i):
-    op1 = get_param(seq, i, 1)
-    op2 = get_param(seq, i, 2)
-    res = seq[i + 3]
-    seq[res] = op1 * op2  
-    return i + 4
+do_add = lambda seq, i: do_operation(seq, i, (lambda a, b: a + b))
+do_multiply = lambda seq, i: do_operation(seq, i, (lambda a, b: a * b))
 
 def take_input(seq, i, default):
     res = seq[i + 1]
@@ -58,35 +55,20 @@ simulate_program(seqA)
 
 print("B: ")
 
-def do_true_jump(seq, i):
+def do_jump(seq, i, func):
+    """ Returns the result of the given func as program pointer. """
     op1 = get_param(seq, i, 1)
     op2 = get_param(seq, i, 2)
-    if op1:
-        return op2
-    else:
-        return i + 3
+    return func(op1, op2)
 
-def do_false_jump(seq, i):
-    op1 = get_param(seq, i, 1)
-    op2 = get_param(seq, i, 2)
-    if not op1:
-        return op2
-    else:
-        return i + 3
-
-def do_less(seq, i):
-    op1 = get_param(seq, i, 1)
-    op2 = get_param(seq, i, 2)
-    res = seq[i + 3]
-    seq[res] = op1 < op2
-    return i + 4
-
-def do_equals(seq, i):
-    op1 = get_param(seq, i, 1)
-    op2 = get_param(seq, i, 2)
-    res = seq[i + 3]
-    seq[res] = op1 == op2
-    return i + 4
+do_true_jump = lambda seq, i: do_jump(seq, i, 
+        (lambda cond, adr: adr if cond else i + 3))
+do_false_jump = lambda seq, i: do_jump(seq, i, 
+        (lambda cond, adr: adr if not cond else i + 3))
+do_less = lambda seq, i: do_operation(seq, i, 
+        (lambda a, b: a < b))
+do_equals = lambda seq, i: do_operation(seq, i, 
+        (lambda a, b: a == b))
 
 def simulate_warmer_program(seq):
     i = 0
