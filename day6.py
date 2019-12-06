@@ -1,6 +1,4 @@
-data = open("input/day6.txt")
-
-print("A: ")
+orbits = {row[4:-1]:row[:3] for row in open("input/day6.txt")}
 
 def findParentsOf(orb, circling):
     """ Finds the number of centers that circling is circling around """
@@ -18,14 +16,7 @@ def findPathOf(orb, circling, path):
     else:
         return findPathOf(orb, parent, [parent] + path)
 
-# Read orbits from input
-orbits = {}
-row = data.readline().split(')')
-while (row != ['']):
-    center = row[0]
-    circling = row[1][:-1]
-    orbits[circling] = center
-    row = data.readline().split(')')
+print("A: ")
 
 # Count number of orbits and find paths to center of mass
 numOfOrbits = 0
