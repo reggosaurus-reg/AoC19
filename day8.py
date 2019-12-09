@@ -6,11 +6,11 @@ print("A:")
 width = 25   
 height = 6
 layer_size = width * height
-layers = [digits[left: left + layer_size] 
-            for left in range(0, len(digits) - 1, layer_size)]
+steps = range(0, len(digits) - 1, layer_size)
+layers = [digits[left: right] for left, right 
+            in zip(steps, steps[1:])]
 
-least_zeros = lambda a, b: a if a.count('0') < b.count('0') else b
-minLayer = reduce(least_zeros, layers) 
+minLayer = min(layers, key=lambda x: x.count('0'))
 
 print(minLayer.count('1') * minLayer.count('2'))
 
