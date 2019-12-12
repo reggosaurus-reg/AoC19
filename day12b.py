@@ -1,7 +1,7 @@
 from itertools import product
 from functools import reduce
 data = open("input/day12.txt")
-data = open("test12.txt")
+#data = open("test12.txt")
 
 # Load moon data
 moons = []
@@ -25,37 +25,36 @@ print("A:")
 add_vel = lambda a: (a[0] + a[3], a[1] + a[4], a[2] + a[5], a[3], a[4], a[5])
 
 steps = 0
+states = {tuple(moons)}
+revisit = False
 
-while steps < 10:
+while not revisit:
     # Apply gravity
     for i in range(len(moons)):
-        for j in range(len(moons)):
+        for j in range(i + 1, len(moons)):
             first = list(moons[i])
             second = list(moons[j])
-            if first != second:
-                for axis in range(3):
-                    if first[axis] > second[axis]:
-                        first[axis + 3] += -0.5 # 1, but counts every pair twice...
-                        second[axis + 3] += 0.5
-                    if first[axis] < second[axis]:
-                        first[axis + 3] += 0.5 
-                        second[axis + 3] += -0.5
+            #if first != second:
+            for axis in range(3):
+                if first[axis] > second[axis]:
+                    first[axis + 3] += -1
+                    second[axis + 3] += 1
+                if first[axis] < second[axis]:
+                    first[axis + 3] += 1 
+                    second[axis + 3] += -1
             moons[i] = tuple(first)
             moons[j] = tuple(second)
-    
     # Move
-    for i in range(len(moons)):
         moons[i] = add_vel(moons[i])
 
+    # Revisit?
     steps += 1
+    revisit = tuple(moons) in states
+    states.add(tuple(moons))
 
-energies = []
-add = lambda a, b: abs(a) + abs(b)
-for moon in moons:
-    pot = reduce(add, moon[:3])
-    kin = reduce(add, moon[3:])
-    energies.append((pot, kin))
+    # States get very long... How to search efficiently?
+    # Need to improve algorithm?
 
-totalify = lambda t: t[0] * t[1]
-total = int(reduce(add, map(totalify, energies)))
-print(total)
+
+print("B:")
+print(steps)
