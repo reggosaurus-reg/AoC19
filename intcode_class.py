@@ -22,7 +22,7 @@ class Computer():
         while self.pointer < self.max_pointer:
             opcode = self.get_opcode()
             if opcode == 99:
-                return
+                return 0
             elif opcode == 1:
                 self.do_add()
             elif opcode == 2:
@@ -31,6 +31,7 @@ class Computer():
                 self.take_input()
             elif opcode == 4:
                 self.give_output()
+                return 1
             elif opcode == 5:
                 self.do_true_jump()
             elif opcode == 6:
