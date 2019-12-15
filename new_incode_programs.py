@@ -1,7 +1,5 @@
 from intcode_class import *
 
-# TODO: Test all examples from all days if still can't work out the new ones
-
 
 #### DAY 2 #### Intcode has one mode and add/mult
 
@@ -60,18 +58,17 @@ assert r5b == 9436229, "Day 5 B failed."
 
 data = list(map(int, open("input/day9.txt").readline().split(',')))
 
-r9a = 0
+c9a = Computer(data)
+c9a.run(1)
+r9a = c9a.output_log[0]
+
 assert r9a == 2955820355, "Day 9 A failed."
 
-r9b = 0
+c9b = Computer(data)
+c9b.run(2)
+r9b = c9b.output_log[0]
+
 assert r9b == 46643, "Day 9 B failed."
-
-
-#### DAY 11 ###
-#### DAY 13 ###
-#### DAY 15 ###
-
-
 
 print("All programs worked!")
 

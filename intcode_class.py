@@ -2,6 +2,8 @@
 
 class Computer():
 
+    ####### Interface
+
     def __init__(self, program):
         self.memory = dict(enumerate(program.copy()))
         self.pointer = 0
@@ -20,7 +22,7 @@ class Computer():
         while self.pointer < self.max_pointer:
             opcode = self.get_opcode()
             if opcode == 99:
-                return # Mark halt?
+                return
             elif opcode == 1:
                 self.do_add()
             elif opcode == 2:
@@ -37,6 +39,8 @@ class Computer():
                 self.do_less()
             elif opcode == 8:
                 self.do_equals()
+            elif opcode == 9:
+                self.change_base()
             else:
                 raise Exception("Invalid opcode {}!".format(opcode))
 
@@ -66,13 +70,12 @@ class Computer():
         if only_address:
             return address
         else:
-            return self.read(address) # really?
+            return self.read(address)
 
     def do_operation(self, func):
         p1 = self.get_param(1)
         p2 = self.get_param(2)
-        p3 = self.get_param(3, True) # ???
-        #print(p1, "and", p2, "=> addr", p3)
+        p3 = self.get_param(3, True)
         self.write(func(p1, p2), p3)
         self.pointer += 4
 
@@ -106,7 +109,6 @@ class Computer():
         if self.input == 'nope':
             raise Exception("No input given.")
         p1 = self.get_param(1, True)
-        #print("in:", self.input, "to", p1)
         self.write(self.input, p1)
         self.pointer += 2
 
@@ -120,3 +122,8 @@ class Computer():
 
     def do_false_jump(self):
         self.do_jump(lambda a, b: b if not a else self.pointer + 3)
+
+    def change_base(self):
+        p1 = self.get_param(1)
+        self.base += p1
+        self.pointer += 2
