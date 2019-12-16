@@ -1,218 +1,104 @@
-############### META FUNCIONS ##############
+from intcode_class import * 
+import os
 
-
-# for an opcode of two digits
-get_opcode = lambda code: code % 100
-get_address_mode = lambda code, i: code // (10 ** (i + 1)) % 10 
-
-
-def get_param(memory, i, pos, only_address = False):
-    """ Returns the value for the pos:th parameter. """
-    mode = get_address_mode(memory[i], pos)
-    if mode == 0:
-        address = memory[i + pos]  # position mode 
-    elif mode == 1:
-        address = i + pos  # immediate mode
-    elif mode == 2:
-        global base
-        address = base + memory[i + pos]  # relative mode 
-    else:
-        raise Exception("Invalid mode {}!".format(mode))
-
-    if address not in memory:
-        memory[address] = 0
-
-    if only_address:
-        return address
-    else:
-        return memory[address]
-
-
-def do_operation(memory, i, func):
-    """ Stores the result of the given func and returns program pointer. """
-    op1 = get_param(memory, i, 1)
-    op2 = get_param(memory, i, 2)
-    res = get_param(memory, i, 3, True) 
-    memory[res] = func(op1,  op2)  
-    return i + 4
-
-
-def do_jump(memory, i, func):
-    """ Returns the result of the given func as program pointer. """
-    op1 = get_param(memory, i, 1)
-    op2 = get_param(memory, i, 2)
-    return func(op1, op2)
-
-
-############## OPCODE FUNCIONS ##############
-
- 
-do_add          = lambda memory, i: do_operation(memory, i, 
-                  (lambda a, b: a + b))
-do_multiply     = lambda memory, i: do_operation(memory, i, 
-                  (lambda a, b: a * b))
-do_less         = lambda memory, i: do_operation(memory, i, 
-                  (lambda a, b: a < b))
-do_equals       = lambda memory, i: do_operation(memory, i, 
-                  (lambda a, b: a == b))
-do_true_jump    = lambda memory, i: do_jump(memory, i, 
-                  (lambda cond, adr: adr if cond else i + 3))
-do_false_jump   = lambda memory, i: do_jump(memory, i, 
-                  (lambda cond, adr: adr if not cond else i + 3))
-
-
-def take_input(memory, i):
-    global curr_io
-    global pad_pos
-    global game # TODO: Move into move_pad()
-    res = get_param(memory, i, 1, True)
-    delta = int(input("Move (-1, 0, 1): "))
-    memory[res] = delta
-    old_pos = pad_pos
-    pad_pos = (pad_pos[0] + delta, pad_pos[1])
-    game[old_pos] = game[pad_pos]
-    game[pad_pos] = "_"
-    return i + 2
-
-
-def do_output(memory, i):
-    global curr_io
-    curr_io = get_param(memory, i, 1)
-    return i + 2
-
-def change_base(memory, i):
-    global base
-    base += get_param(memory, i, 1)
-    return i + 2
-
-################ MAIN PROGRAM ###############
-
-def simulate_program(memory, i):
-    global base
-    base = 0
-    while i < len(memory):
-        opcode = get_opcode(memory[i])
-        if opcode == 99:
-            return -1
-        elif opcode == 1: 
-            i = do_add(memory, i)
-        elif opcode == 2:
-            i = do_multiply(memory, i)
-        elif opcode == 3:
-            i = take_input(memory, i)
-        elif opcode == 4:
-            i = do_output(memory, i)
-            return i
-        elif opcode == 5: 
-            i = do_true_jump(memory, i)
-        elif opcode == 6: 
-            i = do_false_jump(memory, i)
-        elif opcode == 7:
-            i = do_less(memory, i)
-        elif opcode == 8:
-            i = do_equals(memory, i)
-        elif opcode == 9:
-            i = change_base(memory, i)
-        else:
-            raise Exception("Invalid opcode {}!".format(opcode))
-
-################ DAY SPECIFIC ###############
-
-
-memory = dict(enumerate(map(int, 
-    open("input/day13.txt").readline().split(','))))
+program = read_program("input/day13.txt")
 
 print("A:")
 
-def count_blocks(memory, first_input):
-    global curr_io
-    curr_io = first_input
-    pointer = 0
-    blocks = 0
-    game = {}
-    while (pointer != -1):
-        pointer = simulate_program(memory, pointer)
-        x = curr_io
-        if pointer == -1:
-            break
-        pointer = simulate_program(memory, pointer)
-        y = curr_io
-        if pointer == -1:
-            break
-        pointer = simulate_program(memory, pointer)
-        if curr_io == 2:
-            blocks += 1
-    print(blocks)
+game = {}
+computer = Computer(program.copy())
+computer.run_until_end()
+output = computer.output_log
 
+blocks = 0
+while len(output) >= 3:
+    x = output[0]
+    y = output[1]
+    tile = output[2]
+    if tile == 2:
+        blocks += 1
+    elif tile == 3:
+        paddle = (x, y)
+    elif tile == 4:
+        ball = (x, y)
+    game[(x, y)] = tile
+    output = output[3:]
 
-count_blocks(memory.copy(), 1)
+print(blocks)
 
 print("B:")
 
-import os
-import time
-
-def draw_board(data, score):
-    width = max(data, key=lambda a: a[0])[0]
-    height = max(data, key=lambda a: a[1])[1]
-    board = []
-    for y in range(height):
-        row = []
-        for x in range(width):
-            row.append(data[x, y])
-        board.append(row)
-
-    for y in range(height):
-        for x in range(width):
-            char = board[y][x]
-            if char == "B:":
-                print(char + str(score))
-                continue
-            print(char, end='')
-        print()
-
-def has_won(game):
-    return not "#" in game.values() 
-
-def play_pong(memory, first_input):
-    global curr_io
-    global game
-    global pad_pos
-    curr_io = first_input
-    pointer = 0
-    blocks = 0
+def game_bot():
+    cheatProgram = program.copy()
+    computer = Computer(cheatProgram)
+    computer.memory[0] = 2
+    blocksLeft = True
     score = 0
     game = {}
-    while (pointer != -1):
-        pointer = simulate_program(memory, pointer)
-        x = curr_io
-        if pointer == -1:
-            break
-        pointer = simulate_program(memory, pointer)
-        y = curr_io
-        if pointer == -1:
-            break
-        pointer = simulate_program(memory, pointer)
-        if (x, y) == (-1, 0):
-            score = curr_io
-        tile = "B:"
-        if curr_io == 0:
-            tile = " "
-        if curr_io == 1:
-            tile = "|"
-        if curr_io == 2:
-            tile = "#"
-            blocks += 1
-        if curr_io == 3:
-            pad_pos = (x, y)
-            print(pad_pos)
-            tile = "-"
-        if curr_io == 4:
-            tile = "O"
-        game[(x, y)] = tile
-        #draw_board(game, score)
-        
+    ballPos, paddlePos = (0, 0), (0, 0)
 
-memory = memory.copy()
-memory[0] = 2
-play_pong(memory, 0)
+
+    def step_game(joystick = 0):
+        nonlocal ballPos, paddlePos, score
+        if not computer.run(joystick):
+            return 0
+        computer.run(joystick)
+        computer.run(joystick)
+        output = computer.output_log
+        x = output[-3]
+        y = output[-2]
+        tile = output[-1]
+        if x == -1 and y == 0:
+            score = tile
+        elif tile == 3:
+            paddlePos = (x, y)
+        elif tile == 4:
+            ballPos = (x, y)
+        game[(x, y)] = tile
+        return 1
+
+    for num_of_tiles in range(20 * 40):
+        step_game(0)
+
+    while blocksLeft:
+        if paddlePos[0] < ballPos[0]:
+            direction = 1
+        if paddlePos[0] == ballPos[0]:
+            direction = 0 
+        if paddlePos[0] > ballPos[0]:
+            direction = -1
+        blocksLeft = step_game(direction)
+        #draw(game, score)
+
+    return score
+
+def draw(board, score = -1):
+    global blocks
+    width = max(board, key = lambda x: x[0])[0] 
+    height = max(board, key = lambda x: x[1])[1] 
+
+    os.system("clear")
+    print("A:\n{}\nB:\nScore: {}".format(blocks, score))
+
+    for y in range(height + 1):
+        for x in range(width + 1):
+            tile = board.get((x, y), 100)
+            if tile == 0:
+                sign = " "
+            elif tile == 1:
+                sign = "|"
+            elif tile == 2:
+                sign = "#"
+            elif tile == 3:
+                sign = "-"
+            elif tile == 4:
+                sign = "O"
+            elif tile == 100:
+                sign = "?"
+            else:
+                sign = "!"
+                #raise Exception("Unkown tile", tile, "at", x, y)
+            print(sign, end='')
+        print()
+
+print(game_bot())
