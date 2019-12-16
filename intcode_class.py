@@ -1,4 +1,7 @@
-############### META FUNCIONS ##############
+####### General computer related functions
+
+tup_add = lambda a, b: (a[0] + b[0], a[1] + b[1])
+read_program = lambda path: list(map(int, open(path).readline().split(',')))
 
 class Computer():
 
@@ -12,9 +15,20 @@ class Computer():
         self.max_pointer = len(self.memory)
         self.output_log = []
 
+    def copy(self):
+        new = Computer(self.get_memory())
+        new.pointer = self.pointer
+        new.base = self.base
+        return new
+
     def get_memory(self):
         return list(self.memory.values())
 
+    def run_until_end(self, first = "nope"):
+        running = True
+        while running:
+            running = self.run(first)
+    
     def run(self, first_input = "nope"):
         if first_input != "nope":
             self.input = first_input
