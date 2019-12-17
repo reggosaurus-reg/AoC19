@@ -11,8 +11,8 @@ class Computer():
         self.memory = dict(enumerate(program.copy()))
         self.pointer = 0
         self.base = 0
-        self.input = "nope"
         self.max_pointer = len(self.memory)
+        self.input = []
         self.output_log = []
 
     def copy(self):
@@ -24,14 +24,14 @@ class Computer():
     def get_memory(self):
         return list(self.memory.values())
 
-    def run_until_end(self, first = "nope"):
+    def run_until_end(self, first = []):
         running = True
+        self.input += first
         while running:
-            running = self.run(first)
+            running = self.run()
     
-    def run(self, first_input = "nope"):
-        if first_input != "nope":
-            self.input = first_input
+    def run(self, first_input = []):
+        self.input += first_input
 
         while self.pointer < self.max_pointer:
             opcode = self.get_opcode()
@@ -121,10 +121,11 @@ class Computer():
         self.do_operation(lambda a, b: a == b)
 
     def take_input(self):
-        if self.input == 'nope':
+        if not self.input:
             raise Exception("No input given.")
         p1 = self.get_param(1, True)
-        self.write(self.input, p1)
+        self.write(self.input[0], p1)
+        self.input = self.input[1:]
         self.pointer += 2
 
     def give_output(self):
