@@ -1,11 +1,11 @@
-from functools import reduce
+from math import ceil
 from time import process_time as time
 data = open("input/day16.txt").readline()
-#data = open("test16.txt").readline()
+data = open("test16.txt").readline()
 
+offset = int(data[:7])
 base_pattern = [0, 1, 0, -1]
 original_signal = []
-offset = int(data[:7])
 while data[0] != '\n':
     original_signal.append(int(data[0]))
     data = data[1:]
@@ -58,19 +58,24 @@ print(string)
 
 print("B:")
 
+# Only keep the part after our offset, then treat as in a
 little = len(original_signal)
 big = little * 10000
 interesting_signal = original_signal.copy()[offset % little:]
-for i in range((big - offset) // little):
+for i in range(ceil((big - offset) / little)):
     interesting_signal += original_signal.copy() 
 
-#for phases in range(100):
-#    signal = fft(signal)
-#    phases += 1 
-#
-#string = ""
-#for char in res:
-#    string += str(char)
-#print(string) 
+start_t = time()
+for phases in range(100):
+    print("phase {}/100".format(phases + 1))
+    interesting_signal = fft(interesting_signal)
+    phases += 1 
+print("(took {})".format(time() - start_t))
+
+res = interesting_signal[:8]
+string = ""
+for char in res:
+    string += str(char)
+print(string) 
 
 # 82380114 wrong
