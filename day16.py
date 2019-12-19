@@ -1,7 +1,5 @@
 from math import ceil
-from time import process_time as time
 data = open("input/day16.txt").readline()
-data = open("test16.txt").readline()
 
 offset = int(data[:7])
 base_pattern = [0, 1, 0, -1]
@@ -12,14 +10,12 @@ while data[0] != '\n':
 
 
 print("A:")
-# 24465799
-# (took 0.032308121) 
 
-def fft(signal, shift):
+def fftA(signal):
     new_signal = []
     for i in range(len(signal)): 
         # Construct pattern for this position (not with skipped first)
-        repeat = shift + i + 1
+        repeat = i + 1
         plus_index = i
         minus_index = i + 2 * repeat
         cycle_interval = 4 * repeat
@@ -43,11 +39,9 @@ def fft(signal, shift):
     return new_signal
         
 signal = original_signal.copy()
-start_t = time()
 for phases in range(100):
-    signal = fft(signal, 0)
+    signal = fftA(signal)
     phases += 1 
-print("(took {})".format(time() - start_t))
 
 res = signal[:8]
 string = ""
@@ -58,25 +52,30 @@ print(string)
 
 print("B:")
 
-# Only keep the part after our offset, then treat as in a
-little = len(original_signal)
-big = little * 10000
-interesting_signal = original_signal.copy()[offset % little:]
-for i in range(ceil((big - offset) / little)):
-    interesting_signal += original_signal.copy() 
-interesting_signal[:big]
+""" Insights: 
+offset > le(signal) / 2, so pattern will never have -1
+offset > le(signal) / 4, so pattern will never even have 0
+only difference between row sums is the "first" digit
+so, the first interesting digit will be counted once, the second twice...
+... and the last len(interesting_signal)
+"""
 
-start_t = time()
+def fftB(signal):
+    new_signal = signal.copy()
+    summ = signal[-1] # Last will never change
+    for i in range(2, len(signal) + 1): 
+        summ = (summ + signal[-i]) % 10
+        new_signal[-i] = summ % 10
+    return new_signal
+
+# Only keep the (repeated) part after our offset
+interesting_signal = (original_signal*10000)[offset:]
+
 for phases in range(100):
-    print("phase {}/100".format(phases + 1))
-    interesting_signal = fft(interesting_signal, offset)
-    phases += 1 
-print("(took {})".format(time() - start_t))
+    interesting_signal = fftB(interesting_signal)
 
 res = interesting_signal[:8]
 string = ""
 for char in res:
     string += str(char)
 print(string) 
-
-# 82380114 wrong
