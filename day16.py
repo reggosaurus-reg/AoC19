@@ -15,11 +15,11 @@ print("A:")
 # 24465799
 # (took 0.032308121) 
 
-def fft(signal):
+def fft(signal, shift):
     new_signal = []
     for i in range(len(signal)): 
         # Construct pattern for this position (not with skipped first)
-        repeat = i + 1
+        repeat = shift + i + 1
         plus_index = i
         minus_index = i + 2 * repeat
         cycle_interval = 4 * repeat
@@ -45,7 +45,7 @@ def fft(signal):
 signal = original_signal.copy()
 start_t = time()
 for phases in range(100):
-    signal = fft(signal)
+    signal = fft(signal, 0)
     phases += 1 
 print("(took {})".format(time() - start_t))
 
@@ -64,11 +64,12 @@ big = little * 10000
 interesting_signal = original_signal.copy()[offset % little:]
 for i in range(ceil((big - offset) / little)):
     interesting_signal += original_signal.copy() 
+interesting_signal[:big]
 
 start_t = time()
 for phases in range(100):
     print("phase {}/100".format(phases + 1))
-    interesting_signal = fft(interesting_signal)
+    interesting_signal = fft(interesting_signal, offset)
     phases += 1 
 print("(took {})".format(time() - start_t))
 
